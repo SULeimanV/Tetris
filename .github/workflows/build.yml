@@ -9,28 +9,19 @@ jobs:
       - uses: actions/checkout@v4
 
       # 1. Устанавливаем правильную версию Python
-            # 1. Устанавливаем правильную версию Python (без кэширования pip)
-    #  - name: Set up Python
-  #      uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.10'
-
-
-      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      #    cache: 'pip'
 
-      # 2. Устанавливаем Java 17 (она уже есть в репозиториях Ubuntu 22.04, никакой PPA не нужен)
+      # 2. Устанавливаем Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 3. Устанавливаем все системные зависимости, необходимые для Buildozer/Kivy
+      # 3. Устанавливаем системные зависимости
       - name: Install System Dependencies
         run: |
           sudo apt-get update
@@ -39,26 +30,24 @@ jobs:
             libsqlite3-dev xclip libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev cmake
 
-      # 4. Устанавливаем актуальные версии Cython и Buildozer через pip
+      # 4. Устанавливаем Buildozer и Cython
       - name: Install Buildozer and Cython
         run: |
           pip install --upgrade pip
           pip install "cython<3.0.0" buildozer wheel
 
-      # 5. Принудительно принимаем лицензии Android SDK
-      - name: Accept Android SDK Licenses
-        run: |
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f11ed6eccc0eb74b4331b7e2d936de66174c5\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-
-      # 6. Запускаем сборку напрямую без Docker-контейнеров
+      # 5. Запускаем сборку и автоматически принимаем лицензии через встроенную переменную
       - name: Build APK
         run: |
           buildozer -v android debug
+        env:
+          BUILDOZER_ACCEPT_ANDROID_SDK_LICENSE: "1"
 
-      # 7. Сохраняем готовый APK в артефакты
+      # 6. Сохраняем готовый APK в артефакты
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: package
-          path: ./.buildozer/android/platform/build-android/*/*/*/*.apk
+          path: |
+            bin/*.apk
+            .buildozer/android/platform/build-android/*/*/*/*.apk
