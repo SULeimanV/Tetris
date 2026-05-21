@@ -7,6 +7,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
+      # Создаем папки для лицензий и записываем хеши соглашений Google
+      - name: Accept Android SDK Licenses
+        run: |
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f11ed6eccc0eb74b4331b7e2d936de66174c5\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+
       - name: Build APK
         uses: digreatbrian/buildozer-action@v2
         with:
